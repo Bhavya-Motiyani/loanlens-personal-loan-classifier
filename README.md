@@ -1,2 +1,2 @@
-# LoanLens---Personal-Loan-Classifier
+# LoanLens - Personal Loan Classifier
 .
