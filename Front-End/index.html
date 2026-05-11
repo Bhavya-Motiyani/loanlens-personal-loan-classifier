@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="./dist/output.css" rel="stylesheet">
+  <title>LoanLens</title>
+  <link href="style.css" rel="stylesheet">
+</head>
+
+<body>
+
+  <div id="splash">
+    <div class="background"></div>
+    <div class="glow"></div>
+    <div class="text-center z-10">
+      <h1 class="cursor-default text-7xl md:text-8xl max-sm:text-5xl font-bold tracking-[10px] max-sm:tracking-normal">
+        <span class="letter text-cyan-400">L</span>
+        <span class="letter">O</span>
+        <span class="letter">A</span>
+        <span class="letter">N</span>
+        <span class="letter text-cyan-400">L</span>
+        <span class="letter">E</span>
+        <span class="letter">N</span>
+        <span class="letter">S</span>
+      </h1>
+      <p class="cursor-default subtitle text-slate-400 max-sm:tracking-normal text-lg mt-6 tracking-[4px]">
+        PERSONAL LOAN CLASSIFIER
+      </p>
+    </div>
+  </div>
+
+  <!-- MainScreen Here -->
+
+  <div id="mainScreen" class="">
+    <nav class="p-1.5 pl-4 pr-4 flex border-b border-t border-white items-center justify-between w-full">
+      <div class="logo flex flex-col items-center cursor-default">
+        <div class="namehere text-4xl">
+          LoanLens
+        </div>
+        <div class="slogan">
+          Personal Loan Classifier
+        </div>
+      </div>
+
+      <div class="buttons gap-5 flex items-center">
+        <button onclick="showPage('predict')"
+          class="predictbutton hover:text-cyan-400 hover:cursor-pointer transition duration-300 border-b-2 hover:border-cyan-400 bg-fuchsia-300/10 px-2 py-1 rounded-lg">
+          Predictor
+        </button>
+        <button onclick="showPage('analysis')"
+          class="hover:text-cyan-400 hover:cursor-pointer transition duration-300 border-b-2 hover:border-cyan-400">
+          Analysis
+        </button>
+      </div>
+    </nav>
+
+
+  </div>
+
+  <!-- Prediction Page -->
+  <div id="predictionpage" class="predictionpage p-2 flex">
+
+    <div class="form text-white m-2 border rounded-2xl p-3 w-[30vw]">
+      <div class="heading flex flex-col">
+        <div class="title text-[18px] font-bold">
+          Loan Prediction
+        </div>
+        <div class="preheading text-[10px] text-slate-400">
+          Predict whether the customer will accept the personal loan offer
+        </div>
+      </div>
+
+      <!-- Form Here -->
+
+      <div class="formstart mt-3">
+        <div>
+          <label class="block text-slate-300 text-[12px] font-medium mb-1">Age</label>
+          <input id="age" type="number" placeholder="Enter Age" enterkeyhint="next"
+            class="w-full bg-white/5 border border-white/10 placeholder:text-[11px] rounded-lg px-4 py-3 text-white placeholder-slate-600 outline-none mb-2 text-[14px] focus:border-[#63E6FF] transition-colors h-4">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 text-[12px] font-medium mb-1">Annual Income (USD)</label>
+          <input id="income" type="text" placeholder="Enter Annual Income (USD)"
+            class="w-full bg-white/5 border placeholder:text-[11px] border-white/10 rounded-lg px-4 py-3 text-white placeholder-slate-600 h-4 outline-none text-[14px] mb-2 focus:border-[#63E6FF] transition-colors">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 text-[12px] font-medium mb-1">Credit Card Avg Spend</label>
+          <input id="ccavg" type="text" placeholder="Enter Credit Card Avg Spend"
+            class="w-full bg-white/5 border placeholder:text-[11px] border-white/10 rounded-lg px-4 py-3 text-white placeholder-slate-600 h-4 outline-none text-[14px] mb-2 focus:border-[#63E6FF] transition-colors">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 text-[12px] font-medium mb-1">CD Account (0 / 1)</label>
+          <input id="cdaccount" type="text" placeholder="Enter CD Account (0 / 1)"
+            class="w-full bg-white/5 border placeholder:text-[11px] border-white/10 rounded-lg px-4 py-3 text-white placeholder-slate-600 h-4 outline-none text-[14px] focus:border-[#63E6FF] mb-2 transition-colors">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 text-[12px] font-medium mb-1">Mortgage (USD)</label>
+          <input id="mortgage" type="text" placeholder="Enter Mortgage (USD)"
+            class="w-full bg-white/5 border placeholder:text-[11px] border-white/10 rounded-lg mb-2 px-4 py-3 text-white placeholder-slate-600 h-4 outline-none text-[14px] focus:border-[#63E6FF] transition-colors">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 text-[12px] font-medium mb-1">Education</label>
+          <select id="education"
+            class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-1 text-white outline-none cursor-pointer text-[14px] focus:border-[#63E6FF] transition-colors mb-2 placeholder:text-[11px] h-8">
+            <option value="1" class="bg-[#0D1520] placeholder:text-[11px]" selected>1 - Undergraduate</option>
+            <option value="2" class="bg-[#0D1520] placeholder:text-[11px]">2 - Graduate</option>
+            <option value="3" class="bg-[#0D1520] placeholder:text-[11px]">3 - Professional</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="predictBtn"
+        class="w-full py-2 px-4 cursor-pointer rounded-lg font-bold text-white bg-linear-to-r from-[#00D2FF] via-[#3A7BD5] to-[#9D50BB] hover:opacity-90 transition-opacity duration-200 shadow-lg">
+        Predict Loan Acceptance
+      </button>
+
+    </div>
+
+    <div class="secondsection m-2 w-full">
+      <div class="resultsection bg-[#091225] rounded-3xl border border-[#192543]">
+
+        <div class="toptwo flex items-center">
+          <div class="meter flex items-center gap-10 p-5">
+            <!-- Meter -->
+            <div class="relative w-52.5 h-28.75 overflow-hidden">
+
+              <div id="gauge" class="transition-all duration-1000 absolute w-52.5 h-52.5 rounded-full"></div>
+
+              <div class="absolute top-5.5 left-5.5 w-41.5 h-41.5 bg-[#091225] rounded-full"></div>
+
+              <div class="absolute bottom-2 left-1/2 -translate-x-1/2 text-center">
+                <h1 id="percentageText" class="text-3xl font-bold text-cyan-300">
+                  92%
+                </h1>
+                <p class="text-slate-400 mt-1 text-[10px]">
+                  Acceptance Probability
+                </p>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="acceptorreject">
+            <div class="acceptbtn">
+              <button class="text-white border p-2 mb-2 text-[10px] bg-[#17274e] rounded-2xl">
+                Customer is likely to
+              </button>
+            </div>
+            <div id="resultText" class="accepttext font-bold mb-3 text-green-400 text-3xl cursor-default">
+              Accept
+            </div>
+            <div id="resultDescription" class="description text-[10px] text-slate-500">
+              Based on the customer's financial profile and spending behaviour, there is a very high chance that this
+              customer will accept the personal loan offer.
+            </div>
+
+          </div>
+        </div>
+
+        <div class="downbtns flex justify-center w-full p-2 gap-2">
+          <div class="btnone w-full">
+            <button
+              class="items-center text-[10px] w-full justify-center bg-[#17274e] text-white p-2 rounded-2xl cursor-pointer hover:border-blue-700 border border-[#17274e]">
+              Import CSV & Predict All
+            </button>
+          </div>
+          <div class="btntwo w-full">
+            <button
+              class="items-center text-[10px] w-full justify-center bg-[#17274e] text-white p-2 rounded-2xl cursor-pointer hover:border-blue-700 border border-[#17274e]">
+              Download Predictions CSV
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="predictionsection bg-[#091225] rounded-3xl border border-[#192543] mt-3 p-3">
+
+        <div class="scoreh flex justify-between">
+          <div class="box1">
+            <div class="headingh text-white font-bold text-[16px]">
+              Prediction Breakdown
+            </div>
+            <div class="subhead text-slate-500 text-[10px]">
+              Feature impact on prediction
+            </div>
+          </div>
+          <div class="box2 flex flex-col justify-center items-center">
+            <div class="h11 text-slate-500 text-[8px]">
+              Final Score
+            </div>
+            <div id="finalScore" class="scorehere text-[20px] font-bold text-blue-400">
+              0.999
+            </div>
+          </div>
+        </div>
+
+        <div id="analysisContainer" class="bg-[#091225] rounded-3xl p-4 flex flex-col gap-4">
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Analysis Page -->
+    <div id="analysispage" class="w-full analysispage hidden text-white m-1 border-white border rounded-2xl p-1">
+    </div>
+
+</body>
+
+<script src="script.js"></script>
+
+</body>
+
+</html>
