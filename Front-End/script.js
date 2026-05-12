@@ -19,13 +19,15 @@ setTimeout(() => {
 
 function showPage(page) {
 
-    const predict = document.getElementById("predictionpage");
     const analysis = document.getElementById("analysispage");
+    const featureeffect = document.getElementById("featureeffect");
+    const predict = document.getElementById("predictionpage");
     const navButtons = document.querySelectorAll('.buttons button');
     const activeClasses = ["bg-fuchsia-300/10", "px-2", "py-1", "rounded-lg"];
 
     predict.classList.add("hidden");
     analysis.classList.add("hidden");
+    featureeffect.classList.add("hidden");
 
     navButtons.forEach(btn => {
         btn.classList.remove(...activeClasses);
@@ -39,6 +41,11 @@ function showPage(page) {
     if (page === "analysis") {
         analysis.classList.remove("hidden");
         navButtons[1].classList.add(...activeClasses);
+    }
+
+    if (page === "featureeffect") {
+        featureeffect.classList.remove("hidden");
+        navButtons[2].classList.add(...activeClasses);
     }
 }
 

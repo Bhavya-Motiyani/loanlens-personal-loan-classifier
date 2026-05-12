@@ -170,3 +170,47 @@
    background-color: #0f172a;
    border-color: #232f4f;
  }
+
+ #incomeSlider {
+   width: 100%;
+   appearance: none;
+   background: transparent;
+   cursor: pointer;
+ }
+
+ /* Track */
+ #incomeSlider::-webkit-slider-runnable-track {
+   height: 3px;
+   background: #d1d5db;
+   border-radius: 999px;
+ }
+
+ /* Thumb */
+ #incomeSlider::-webkit-slider-thumb {
+   appearance: none;
+   margin-top: -3.5px;
+   width: 10px;
+   height: 10px;
+   border-radius: 50%;
+   background: #22d3ee;
+   box-shadow:
+     0 0 10px #22d3ee,
+     0 0 20px #22d3ee;
+ }
+
+ /* Firefox */
+ #incomeSlider::-moz-range-track {
+   height: 3px;
+   background: #d1d5db;
+ }
+
+ #incomeSlider::-moz-range-thumb {
+   width: 20px;
+   height: 20px;
+   border: none;
+   border-radius: 50%;
+   background: #22d3ee;
+   box-shadow:
+     0 0 10px #22d3ee,
+     0 0 20px #22d3ee;
+ }
