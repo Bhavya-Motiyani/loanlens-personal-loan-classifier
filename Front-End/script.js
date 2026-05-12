@@ -10,8 +10,8 @@ setTimeout(() => {
 
         document.getElementById("mainScreen").style.display = "flex";
 
-        document.body.style.overflowX = "hidden";
-        document.body.style.overflowY = "hidden";
+        // document.body.style.overflowX = "hidden";
+        // document.body.style.overflowY = "hidden";
 
     }, 1000);
 
@@ -123,7 +123,7 @@ function renderAnalysis(data) {
   data.forEach(item => {
 
     // Convert impact into width
-    const width = Math.min(Math.abs(item.impact) * 350, 350);
+    const width = Math.max(item.impact * 900, 10);
 
     // Positive / Negative colors
     const isPositive = item.impact >= 0;
