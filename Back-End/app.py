@@ -2,15 +2,25 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pandas as pd
 import joblib
+import shap
+import numpy as np
 
 app = Flask(__name__)
 
-# Enable CORS properly
+# Enable CORS
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# Load model
+# Load trained pipeline
 model = joblib.load("final_rfc_model.pkl")
-print(model.feature_names_in_)
+
+# Extract Random Forest model
+final_model = model.named_steps["RFC Model"]
+
+# Create SHAP explainer
+explainer = shap.TreeExplainer(final_model)
+
+print("Model Loaded Successfully")
+
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -21,6 +31,10 @@ def predict():
 
         print("Received Data:", data)
 
+        # -------------------------
+        # INPUT VALUES
+        # -------------------------
+
         age = float(data["age"])
         income = float(data["income"])
         ccavg = float(data["ccavg"])
@@ -28,7 +42,16 @@ def predict():
         mortgage = float(data["mortgage"])
         education = float(data["education"])
 
-        cc_to_income_ratio = ccavg / income
+        # Derived feature
+        cc_to_income_ratio = (
+            ccavg / income
+            if income != 0
+            else 0
+        )
+
+        # -------------------------
+        # CREATE INPUT DATAFRAME
+        # -------------------------
 
         input_data = pd.DataFrame([[
             age,
@@ -50,9 +73,61 @@ def predict():
 
         print(input_data)
 
-        prediction = model.predict(input_data)[0]
+        # -------------------------
+        # PREDICTION
+        # -------------------------
 
-        probability = model.predict_proba(input_data)[0][1]
+        prediction = int(
+            final_model.predict(input_data)[0]
+        )
+
+        probability = float(
+            final_model
+            .predict_proba(input_data)[0][1]
+        )
+
+        # -------------------------
+        # SHAP VALUES
+        # -------------------------
+
+        shap_values = explainer.shap_values(input_data)
+
+        # Convert to numpy array
+        shap_values = np.array(shap_values)
+
+        print("SHAP VALUES SHAPE:", shap_values.shape)
+
+        """
+        YOUR MODEL RETURNS:
+        (samples, features, classes)
+
+        Example:
+        (1, 7, 2)
+
+        We want:
+        sample 0
+        all features
+        class 1
+        """
+
+        class_1_shap = shap_values[0, :, 1]
+
+        # -------------------------
+        # BASE VALUE
+        # -------------------------
+
+        expected_value = np.array(
+            explainer.expected_value
+        )
+
+        print("EXPECTED VALUE:", expected_value)
+
+        # Class 1 base value
+        base_value = float(expected_value[1])
+
+        # -------------------------
+        # FEATURE INFO
+        # -------------------------
 
         feature_names = [
             "Age",
@@ -74,30 +149,56 @@ def predict():
             cc_to_income_ratio
         ]
 
-        final_model = model.steps[-1][1]
-        print(final_model)
-        importances = final_model.feature_importances_
+        shap_analysis = []
 
-        analysis_data = []
-
-        for feature, value, importance in zip(
+        for feature, value, shap_val in zip(
             feature_names,
             feature_values,
-            importances
+            class_1_shap
         ):
 
-            contribution = importance * probability
+            shap_analysis.append({
 
-            analysis_data.append({
                 "feature": feature,
-                "value": round(value, 2),
-                "impact": round(contribution, 3)
+
+                "value": round(
+                    float(value),
+                    2
+                ),
+
+                "shap_value": round(
+                    float(shap_val),
+                    5
+                ),
+
+                "direction": (
+                    "positive"
+                    if shap_val >= 0
+                    else "negative"
+                )
+
             })
 
+        # -------------------------
+        # RESPONSE
+        # -------------------------
+
         return jsonify({
-            "prediction": int(prediction),
-            "probability": round(float(probability), 2),
-            "analysis": analysis_data
+
+            "prediction": prediction,
+
+            "probability": round(
+                probability,
+                4
+            ),
+
+            "base_value": round(
+                base_value,
+                5
+            ),
+
+            "shap_values": shap_analysis
+
         })
 
     except Exception as e:
