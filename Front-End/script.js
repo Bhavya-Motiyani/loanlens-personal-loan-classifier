@@ -23,7 +23,7 @@ function showPage(page) {
 
     const navButtons =
         document.querySelectorAll('.buttons button');
-        
+
     const activeClasses = ["bg-fuchsia-300/10", "px-2", "py-1", "rounded-lg"];
 
     predict.classList.add("hidden");
@@ -289,77 +289,77 @@ predictBtn.addEventListener(
     "click",
     async () => {
 
-    const age =
-        document.getElementById("age").value;
+        const age =
+            document.getElementById("age").value;
 
-    const income =
-        document.getElementById("income").value;
+        const income =
+            document.getElementById("income").value;
 
-    const ccavg =
-        document.getElementById("ccavg").value;
+        const ccavg =
+            document.getElementById("ccavg").value;
 
-    const cd_account =
-        document.getElementById("cdaccount").value;
+        const cd_account =
+            document.getElementById("cdaccount").value;
 
-    const mortgage =
-        document.getElementById("mortgage").value;
+        const mortgage =
+            document.getElementById("mortgage").value;
 
-    const education =
-        document.getElementById("education").value;
+        const education =
+            document.getElementById("education").value;
 
-    try {
+        try {
 
-        const response =
-            await fetch(
-                "http://127.0.0.1:5000/predict",
-            {
+            const response =
+                await fetch(
+                    "http://127.0.0.1:5000/predict",
+                    {
 
-                method: "POST",
+                        method: "POST",
 
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
 
-                body: JSON.stringify({
+                        body: JSON.stringify({
 
-                    age,
-                    income,
-                    ccavg,
-                    cd_account,
-                    mortgage,
-                    education
+                            age,
+                            income,
+                            ccavg,
+                            cd_account,
+                            mortgage,
+                            education
 
-                })
+                        })
 
-            });
+                    });
 
-        const data =
-            await response.json();
+            const data =
+                await response.json();
 
-        if (data.error) {
+            if (data.error) {
 
-            alert(data.error);
+                alert(data.error);
 
-            return;
-        }
+                return;
+            }
 
-        renderAnalysis(
-            data.shap_values,
-            data.base_value
-        );
-
-        const probability =
-            Math.round(
-                data.probability * 100
+            renderAnalysis(
+                data.shap_values,
+                data.base_value
             );
 
-        const finalScore =
-            document.getElementById(
-                "finalScore"
-            );
+            const probability =
+                Math.round(
+                    data.probability * 100
+                );
 
-        finalScore.innerHTML = `
+            const finalScore =
+                document.getElementById(
+                    "finalScore"
+                );
+
+            finalScore.innerHTML = `
             <div class="flex flex-col items-end">
                 <div>${data.probability.toFixed(2)}</div>
 
@@ -369,97 +369,147 @@ predictBtn.addEventListener(
             </div>
         `;
 
-        if (data.probability > 0.7) {
+            if (data.probability > 0.7) {
 
-            finalScore.classList.remove(
-                "text-red-400",
-                "text-yellow-400"
-            );
+                finalScore.classList.remove(
+                    "text-red-400",
+                    "text-yellow-400"
+                );
 
-            finalScore.classList.add(
-                "text-green-400"
-            );
+                finalScore.classList.add(
+                    "text-green-400"
+                );
+            }
+
+            else if (
+                data.probability > 0.4
+            ) {
+
+                finalScore.classList.remove(
+                    "text-red-400",
+                    "text-green-400"
+                );
+
+                finalScore.classList.add(
+                    "text-yellow-400"
+                );
+            }
+
+            else {
+
+                finalScore.classList.remove(
+                    "text-green-400",
+                    "text-yellow-400"
+                );
+
+                finalScore.classList.add(
+                    "text-red-400"
+                );
+            }
+
+            setGauge(probability);
+
+            const resultText =
+                document.getElementById(
+                    "resultText"
+                );
+
+            const resultDescription =
+                document.getElementById(
+                    "resultDescription"
+                );
+
+            if (data.prediction === 1) {
+
+                resultText.innerText =
+                    "Accept";
+
+                resultText.classList.remove(
+                    "text-red-400"
+                );
+
+                resultText.classList.add(
+                    "text-green-400"
+                );
+
+                resultDescription.innerText =
+                    "Customer is highly likely to accept the personal loan offer.";
+            }
+
+            else {
+
+                resultText.innerText =
+                    "Reject";
+
+                resultText.classList.remove(
+                    "text-green-400"
+                );
+
+                resultText.classList.add(
+                    "text-red-400"
+                );
+
+                resultDescription.innerText =
+                    "Customer is unlikely to accept the personal loan offer.";
+            }
+
         }
 
-        else if (
-            data.probability > 0.4
-        ) {
+        catch (error) {
 
-            finalScore.classList.remove(
-                "text-red-400",
-                "text-green-400"
-            );
+            console.log(error);
 
-            finalScore.classList.add(
-                "text-yellow-400"
-            );
+            alert("Prediction failed");
         }
 
-        else {
+    });
 
-            finalScore.classList.remove(
-                "text-green-400",
-                "text-yellow-400"
-            );
+// Page 3 Meter 
 
-            finalScore.classList.add(
-                "text-red-400"
-            );
-        }
+const progressArc = document.getElementById("progressArc");
+const percentageText = document.getElementById("percentageText");
 
-        setGauge(probability);
+// Get actual path length automatically
+const arcLength = progressArc.getTotalLength();
 
-        const resultText =
-            document.getElementById(
-                "resultText"
-            );
+// Initialize
+progressArc.style.strokeDasharray = arcLength;
+progressArc.style.strokeDashoffset = arcLength;
 
-        const resultDescription =
-            document.getElementById(
-                "resultDescription"
-            );
+function getColor(value) {
 
-        if (data.prediction === 1) {
-
-            resultText.innerText =
-                "Accept";
-
-            resultText.classList.remove(
-                "text-red-400"
-            );
-
-            resultText.classList.add(
-                "text-green-400"
-            );
-
-            resultDescription.innerText =
-                "Customer is highly likely to accept the personal loan offer.";
-        }
-
-        else {
-
-            resultText.innerText =
-                "Reject";
-
-            resultText.classList.remove(
-                "text-green-400"
-            );
-
-            resultText.classList.add(
-                "text-red-400"
-            );
-
-            resultDescription.innerText =
-                "Customer is unlikely to accept the personal loan offer.";
-        }
-
+    if (value <= 30) {
+        return "#ff8c42";
     }
 
-    catch(error) {
-
-        console.log(error);
-
-        alert("Prediction failed");
+    if (value <= 60) {
+        return "#ffd93d";
     }
 
-});
+    if (value <= 80) {
+        return "#7dff4d";
+    }
+
+    return "#42f5e6";
+}
+
+function setGauge(value) {
+
+    // Prevent invalid values
+    value = Math.max(0, Math.min(100, value));
+
+    // Fill calculation
+    const offset = arcLength - (value / 100) * arcLength;
+
+    // Animate arc
+    progressArc.style.strokeDashoffset = offset;
+
+    // Change color
+    progressArc.style.stroke = getColor(value);
+
+    // Update text
+    percentageText.textContent = value + "%";
+}
+
+// TEST VALUE
+setGauge(78);
