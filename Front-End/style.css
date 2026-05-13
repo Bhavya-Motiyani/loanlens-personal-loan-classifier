@@ -273,3 +273,20 @@
  .text-red-400 {
    text-shadow: 0 0 10px rgba(248, 113, 113, 0.5);
  }
+
+ .filter-active {
+   background: linear-gradient(to right, #00d2ff, #8b5cf6);
+   border: 1px solid #22d3ee;
+   color: white;
+   box-shadow: 0 0 10px rgba(34, 211, 238, 0.35);
+ }
+
+ .sliderwrap input[type="range"] {
+   width: 100%;
+   max-width: 100%;
+ }
+
+ .sliderwrap {
+   width: 100%;
+   overflow: hidden;
+ }

@@ -324,12 +324,16 @@ predictBtn.addEventListener(
                         body: JSON.stringify({
 
                             age,
-                            income,
-                            ccavg,
-                            cd_account,
-                            mortgage,
-                            education
 
+                            income,
+
+                            ccavg,
+
+                            cd_account,
+
+                            mortgage,
+
+                            education
                         })
 
                     });
@@ -613,6 +617,7 @@ async function updateFeatureEffects() {
         );
 
         const data = await response.json();
+        console.log("ANALYSIS DATA:", data);
 
         // =====================
         // GAUGE UPDATE
@@ -877,3 +882,370 @@ Object.values(featureInputs)
 
 // INITIAL LOAD
 updateFeatureEffects();
+
+// =========================
+// ANALYSIS SLIDER TEXT
+// =========================
+
+const analysisIncome =
+    document.getElementById(
+        "analysisIncome"
+    );
+
+const analysisIncomeText =
+    document.getElementById(
+        "analysisIncomeText"
+    );
+
+analysisIncome.addEventListener(
+    "input",
+    () => {
+
+        analysisIncomeText.innerText =
+            analysisIncome.value;
+    }
+);
+
+
+const analysisCCAvg =
+    document.getElementById(
+        "analysisCCAvg"
+    );
+
+const analysisCCAvgText =
+    document.getElementById(
+        "analysisCCAvgText"
+    );
+
+analysisCCAvg.addEventListener(
+    "input",
+    () => {
+
+        analysisCCAvgText.innerText =
+            analysisCCAvg.value;
+    }
+);
+
+
+const analysisMortgage =
+    document.getElementById(
+        "analysisMortgage"
+    );
+
+const analysisMortgageText =
+    document.getElementById(
+        "analysisMortgageText"
+    );
+
+analysisMortgage.addEventListener(
+    "input",
+    () => {
+
+        analysisMortgageText.innerText =
+            analysisMortgage.value;
+    }
+);
+
+// =========================
+// FILTER BUTTON SELECTION
+// =========================
+
+const filterGroups =
+    document.querySelectorAll(".filterBtns");
+
+filterGroups.forEach(group => {
+
+    const buttons =
+        group.querySelectorAll("button");
+
+    buttons.forEach(button => {
+
+        button.addEventListener(
+            "click",
+
+            () => {
+
+                buttons.forEach(btn => {
+                    btn.classList.remove(
+                        "filter-active"
+                    );
+                });
+
+                button.classList.add(
+                    "filter-active"
+                );
+            }
+        );
+    });
+});
+
+const showResultsBtn =
+    document.querySelector(
+        ".showresults button"
+    );
+
+showResultsBtn.addEventListener(
+    "click",
+    async () => {
+
+        try {
+
+            const age =
+                document.getElementById("agebox").value;
+
+            const income =
+                document.getElementById("analysisIncome").value;
+
+            const ccavg =
+                document.getElementById("analysisCCAvg").value;
+
+            const mortgage =
+                document.getElementById("analysisMortgage").value;
+
+            const response =
+                await fetch(
+                    "http://127.0.0.1:5000/analysis",
+                    {
+
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+
+                            age:
+                                age === "" ? null : age,
+
+                            income:
+                                income == 0 ? null : income,
+
+                            ccavg:
+                                ccavg == 0 ? null : ccavg,
+
+                            mortgage:
+                                mortgage == 0 ? null : mortgage
+                        })
+                    }
+                );
+
+            const data =
+                await response.json();
+
+            console.log(data);
+
+            if (data.error) {
+
+                console.log(data.error);
+
+                alert(data.error);
+
+                return;
+            }
+
+            if (!data.table) {
+
+                console.log("No table data");
+
+                return;
+            }
+
+            renderAnalysisTable(
+                data.table
+            );
+
+            updateAnalysisStats(
+                data.stats
+            );
+
+
+        }
+
+        catch (error) {
+
+            console.log(error);
+        }
+    }
+);
+
+function renderAnalysisTable(rows) {
+
+    const table =
+        document.getElementById(
+            "analysisTable"
+        );
+
+    // CREATE TABLE ONLY ONCE
+    if (!table.querySelector("table")) {
+
+        table.innerHTML = `
+
+        <table class="w-full text-left border-separate border-spacing-y-2">
+
+            <thead>
+
+                <tr class="text-slate-400 text-[12px]">
+
+                    <th>Age</th>
+                    <th>Income</th>
+                    <th>Family</th>
+                    <th>CCAvg</th>
+                    <th>Education</th>
+                    <th>Mortgage</th>
+                    <th>CD</th>
+                    <th>Online</th>
+                    <th>Loan</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="analysisTableBody">
+
+            </tbody>
+
+        </table>
+        `;
+    }
+
+    const tbody =
+        document.getElementById(
+            "analysisTableBody"
+        );
+
+    tbody.innerHTML = "";
+
+    if (rows.length === 0) {
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9"
+                    class="text-center p-6 text-slate-500">
+                    No matching rows found
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+    rows.forEach(row => {
+
+        tbody.innerHTML += `
+
+        <tr class="bg-[#0b1326] text-[12px]">
+
+            <td class="p-3 rounded-l-xl">
+                ${row.Age}
+            </td>
+
+            <td>${row.Income}</td>
+
+            <td>${row.Family}</td>
+
+            <td>${row.CCAvg}</td>
+
+            <td>${row.Education}</td>
+
+            <td>${row.Mortgage}</td>
+
+            <td>
+                ${row["CD Account"]}
+            </td>
+
+            <td>${row.Online}</td>
+
+            <td class="rounded-r-xl">
+
+                <span class="
+                    px-3 py-1 rounded-full
+                    ${row["Personal Loan"] === 1
+                ? "bg-green-500/20 text-green-300"
+                : "bg-red-500/20 text-red-300"}
+                ">
+
+                    ${row["Personal Loan"] === 1
+                ? "Approved"
+                : "Rejected"}
+
+                </span>
+
+            </td>
+
+        </tr>
+        `;
+    });
+}
+
+function updateAnalysisStats(stats) {
+
+    document.getElementById(
+        "totalRows"
+    ).innerText =
+        stats.total_rows.toLocaleString();
+
+    document.getElementById(
+        "avgIncome"
+    ).innerText =
+        stats.avg_income + "k";
+
+    document.getElementById(
+        "loanPercent"
+    ).innerText =
+        stats.loan_percentage + "%";
+
+    document.getElementById(
+        "cdPercent"
+    ).innerText =
+        stats.cd_percentage + "%";
+
+    // =====================
+    // EDUCATION COUNTS
+    // =====================
+
+    const total =
+        stats.education_counts.edu1 +
+        stats.education_counts.edu2 +
+        stats.education_counts.edu3;
+
+    const edu1Width =
+        (stats.education_counts.edu1 / total) * 100;
+
+    const edu2Width =
+        (stats.education_counts.edu2 / total) * 100;
+
+    const edu3Width =
+        (stats.education_counts.edu3 / total) * 100;
+
+    document.getElementById(
+        "edu1Count"
+    ).innerText =
+        stats.education_counts.edu1;
+
+    document.getElementById(
+        "edu2Count"
+    ).innerText =
+        stats.education_counts.edu2;
+
+    document.getElementById(
+        "edu3Count"
+    ).innerText =
+        stats.education_counts.edu3;
+
+    document.getElementById(
+        "edu1Bar"
+    ).style.width =
+        edu1Width + "%";
+
+    document.getElementById(
+        "edu2Bar"
+    ).style.width =
+        edu2Width + "%";
+
+    document.getElementById(
+        "edu3Bar"
+    ).style.width =
+        edu3Width + "%";
+}
