@@ -640,18 +640,22 @@
 
               <div class=" px-5 py-4 rounded-2xl shadow-2xl">
 
-                <div class="gauge-wrapper">
-                  <svg class="gauge-svg" viewBox="0 0 300 180">
-                    <path class="gauge-bg" d="M 30 150 A 120 120 0 0 1 270 150" />
-                    <path id="progressArc" class="gauge-progress" d="M 30 150 A 120 120 0 0 1 270 150" />
+                <div class="feature-gauge-wrapper">
+                  <svg class="feature-gauge-svg" viewBox="0 0 300 180">
+
+                    <path class="feature-gauge-bg" d="M 30 150 A 120 120 0 0 1 270 150" />
+
+                    <path id="featureProgressArc" class="feature-gauge-progress" d="M 30 150 A 120 120 0 0 1 270 150" />
+
                   </svg>
+
                   <div class="absolute inset-0 flex flex-col items-center justify-center mt-4">
 
-                    <h1 id="percentageText" class="text-3xl font-bold text-cyan-300">
+                    <h1 id="featurePercentageText" class="text-3xl font-bold text-cyan-300">
                       0%
                     </h1>
 
-                    <p class="text-slate-400 text-[12px]  mt-1">
+                    <p class="text-slate-400 text-[12px] mt-1">
                       Acceptance Probability
                     </p>
 
@@ -783,7 +787,7 @@
                     </div>
                   </div>
                 </div>
-                
+
                 <div class="featurefivee flex flex-col gap-1 mt-2">
                   <div class="featurename flex justify-between">
                     <div class="featuretype font-bold text-[10px]">
@@ -799,7 +803,7 @@
                     </div>
                   </div>
                 </div>
-                
+
               </div>
             </div>
 

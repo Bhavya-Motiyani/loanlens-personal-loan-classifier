@@ -466,17 +466,28 @@ predictBtn.addEventListener(
 
 // Page 3 Meter 
 
-const progressArc = document.getElementById("progressArc");
-const percentageText = document.getElementById("percentageText");
+// Feature Effect Page Meter
 
-// Get actual path length automatically
-const arcLength = progressArc.getTotalLength();
+const featureProgressArc =
+    document.getElementById(
+        "featureProgressArc"
+    );
 
-// Initialize
-progressArc.style.strokeDasharray = arcLength;
-progressArc.style.strokeDashoffset = arcLength;
+const featurePercentageText =
+    document.getElementById(
+        "featurePercentageText"
+    );
 
-function getColor(value) {
+const featureArcLength =
+    featureProgressArc.getTotalLength();
+
+featureProgressArc.style.strokeDasharray =
+    featureArcLength;
+
+featureProgressArc.style.strokeDashoffset =
+    featureArcLength;
+
+function getFeatureGaugeColor(value) {
 
     if (value <= 30) {
         return "#ff8c42";
@@ -493,23 +504,27 @@ function getColor(value) {
     return "#42f5e6";
 }
 
-function setGauge(value) {
+function setFeatureGauge(value) {
 
-    // Prevent invalid values
-    value = Math.max(0, Math.min(100, value));
+    value = Math.max(
+        0,
+        Math.min(100, value)
+    );
 
-    // Fill calculation
-    const offset = arcLength - (value / 100) * arcLength;
+    const offset =
+        featureArcLength -
+        (value / 100) *
+        featureArcLength;
 
-    // Animate arc
-    progressArc.style.strokeDashoffset = offset;
+    featureProgressArc.style.strokeDashoffset =
+        offset;
 
-    // Change color
-    progressArc.style.stroke = getColor(value);
+    featureProgressArc.style.stroke =
+        getFeatureGaugeColor(value);
 
-    // Update text
-    percentageText.textContent = value + "%";
+    featurePercentageText.textContent =
+        value + "%";
 }
 
-// TEST VALUE
-setGauge(78);
+// TEST
+setFeatureGauge(22);
