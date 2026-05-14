@@ -1,26 +1,145 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import pandas as pd
 import joblib
 import shap
 import numpy as np
+import os
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
-# Enable CORS
+# =========================================
+# CORS
+# =========================================
+
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# Load trained pipeline
+# =========================================
+# LOAD MODEL
+# =========================================
+
 model = joblib.load("final_rfc_model.pkl")
 
-# Extract Random Forest model
 final_model = model.named_steps["RFC Model"]
 
-# Create SHAP explainer
 explainer = shap.TreeExplainer(final_model)
 
 print("Model Loaded Successfully")
 
+# =========================================
+# GLOBAL STORAGE
+# =========================================
+
+uploaded_analysis_df = None
+
+predicted_csv_path = "predicted_output.csv"
+
+filtered_csv_path = "filtered_output.csv"
+
+# =========================================
+# REQUIRED DATASET COLUMNS
+# =========================================
+
+required_columns = [
+    "Age",
+    "Experience",
+    "Income",
+    "ZIP Code",
+    "Family",
+    "CCAvg",
+    "Education",
+    "Mortgage",
+    "Securities Account",
+    "CD Account",
+    "Online",
+    "CreditCard"
+]
+
+# =========================================
+# HELPER FUNCTIONS
+# =========================================
+
+def validate_dataset_columns(df):
+
+    missing_columns = [
+        col for col in required_columns
+        if col not in df.columns
+    ]
+
+    return missing_columns
+
+
+def create_model_features(df):
+
+    df = df.copy()
+
+    df["CCToIncomeRatio"] = np.where(
+        df["Income"] != 0,
+        df["CCAvg"] / df["Income"],
+        0
+    )
+
+    return df
+
+
+def prepare_single_input(data):
+
+    age = float(data["age"])
+
+    if age < 18 or age > 100:
+        raise ValueError(
+            "Age must be between 18 and 100"
+        )
+
+    income = float(data["income"])
+
+    ccavg = float(data["ccavg"])
+
+    cd_account = float(data["cd_account"])
+
+    mortgage = float(data["mortgage"])
+
+    education = float(data["education"])
+
+    cc_to_income_ratio = (
+        ccavg / income
+        if income != 0
+        else 0
+    )
+
+    input_df = pd.DataFrame([[
+        age,
+        income,
+        cd_account,
+        mortgage,
+        education,
+        ccavg,
+        cc_to_income_ratio
+    ]], columns=[
+        "Age",
+        "Income",
+        "CD Account",
+        "Mortgage",
+        "Education",
+        "CCAvg",
+        "CCToIncomeRatio"
+    ])
+
+    return (
+        input_df,
+        age,
+        income,
+        ccavg,
+        cd_account,
+        mortgage,
+        education,
+        cc_to_income_ratio
+    )
+
+# =========================================
+# PREDICT SINGLE SAMPLE
+# =========================================
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -31,51 +150,16 @@ def predict():
 
         print("Received Data:", data)
 
-        # -------------------------
-        # INPUT VALUES
-        # -------------------------
-
-        age = float(data["age"])
-        income = float(data["income"])
-        ccavg = float(data["ccavg"])
-        cd_account = float(data["cd_account"])
-        mortgage = float(data["mortgage"])
-        education = float(data["education"])
-
-        # Derived feature
-        cc_to_income_ratio = (
-            ccavg / income
-            if income != 0
-            else 0
-        )
-
-        # -------------------------
-        # CREATE INPUT DATAFRAME
-        # -------------------------
-
-        input_data = pd.DataFrame([[
+        (
+            input_data,
             age,
             income,
+            ccavg,
             cd_account,
             mortgage,
             education,
-            ccavg,
             cc_to_income_ratio
-        ]], columns=[
-            "Age",
-            "Income",
-            "CD Account",
-            "Mortgage",
-            "Education",
-            "CCAvg",
-            "CCToIncomeRatio"
-        ])
-
-        print(input_data)
-
-        # -------------------------
-        # PREDICTION
-        # -------------------------
+        ) = prepare_single_input(data)
 
         prediction = int(
             final_model.predict(input_data)[0]
@@ -86,48 +170,25 @@ def predict():
             .predict_proba(input_data)[0][1]
         )
 
-        # -------------------------
+        # =====================================
         # SHAP VALUES
-        # -------------------------
+        # =====================================
 
-        shap_values = explainer.shap_values(input_data)
+        shap_values = explainer.shap_values(
+            input_data
+        )
 
-        # Convert to numpy array
         shap_values = np.array(shap_values)
 
-        print("SHAP VALUES SHAPE:", shap_values.shape)
-
-        """
-        YOUR MODEL RETURNS:
-        (samples, features, classes)
-
-        Example:
-        (1, 7, 2)
-
-        We want:
-        sample 0
-        all features
-        class 1
-        """
-
         class_1_shap = shap_values[0, :, 1]
-
-        # -------------------------
-        # BASE VALUE
-        # -------------------------
 
         expected_value = np.array(
             explainer.expected_value
         )
 
-        print("EXPECTED VALUE:", expected_value)
-
-        # Class 1 base value
-        base_value = float(expected_value[1])
-
-        # -------------------------
-        # FEATURE INFO
-        # -------------------------
+        base_value = float(
+            expected_value[1]
+        )
 
         feature_names = [
             "Age",
@@ -179,10 +240,6 @@ def predict():
 
             })
 
-        # -------------------------
-        # RESPONSE
-        # -------------------------
-
         return jsonify({
 
             "prediction": prediction,
@@ -203,81 +260,409 @@ def predict():
 
     except Exception as e:
 
-        print("ERROR:", e)
+        print("PREDICTION ERROR:", e)
 
         return jsonify({
             "error": str(e)
         }), 500
-    
+
+# =========================================
+# CSV PREDICT ALL
+# =========================================
+
+@app.route("/upload_predict_csv", methods=["POST"])
+def upload_predict_csv():
+
+    global predicted_csv_path
+
+    try:
+
+        if "file" not in request.files:
+
+            return jsonify({
+                "error": "No file uploaded"
+            }), 400
+
+        file = request.files["file"]
+
+        if file.filename == "":
+
+            return jsonify({
+                "error": "Empty filename"
+            }), 400
+
+        filename = secure_filename(
+            file.filename
+        )
+
+        extension = os.path.splitext(
+            filename
+        )[1].lower()
+
+        # =====================================
+        # READ FILE
+        # =====================================
+
+        if extension == ".csv":
+
+            df = pd.read_csv(file)
+
+        elif extension in [".xlsx", ".xls"]:
+
+            df = pd.read_excel(file)
+
+        else:
+
+            return jsonify({
+                "error":
+                "Only CSV or Excel files allowed"
+            }), 400
+
+        # =====================================
+        # VALIDATE COLUMNS
+        # =====================================
+
+        missing_columns = validate_dataset_columns(df)
+
+        if missing_columns:
+
+            return jsonify({
+
+                "error":
+                "Missing columns",
+
+                "missing_columns":
+                missing_columns
+
+            }), 400
+
+        # =====================================
+        # FEATURE ENGINEERING
+        # =====================================
+
+        model_df = create_model_features(df)
+
+        model_input = model_df[[
+            "Age",
+            "Income",
+            "CD Account",
+            "Mortgage",
+            "Education",
+            "CCAvg",
+            "CCToIncomeRatio"
+        ]]
+
+        # =====================================
+        # PREDICTIONS
+        # =====================================
+
+        predictions = final_model.predict(
+            model_input
+        )
+
+        probabilities = (
+            final_model
+            .predict_proba(model_input)[:, 1]
+        )
+
+        output_df = df.copy()
+
+        output_df["Personal Loan"] = predictions
+
+        output_df["Loan Probability"] = np.round(
+            probabilities,
+            4
+        )
+
+        output_df.to_csv(
+            predicted_csv_path,
+            index=False
+        )
+
+        return jsonify({
+
+            "message":
+            "Predictions completed successfully",
+
+            "rows_processed":
+            len(output_df)
+
+        })
+
+    except Exception as e:
+
+        print("CSV PREDICTION ERROR:", e)
+
+        return jsonify({
+            "error": str(e)
+        }), 500
+
+# =========================================
+# DOWNLOAD PREDICTED CSV
+# =========================================
+
+@app.route(
+    "/download_predictions_csv",
+    methods=["GET"]
+)
+def download_predictions_csv():
+
+    try:
+
+        if not os.path.exists(
+            predicted_csv_path
+        ):
+
+            return jsonify({
+                "error":
+                "No prediction CSV available"
+            }), 404
+
+        return send_file(
+            predicted_csv_path,
+            as_attachment=True
+        )
+
+    except Exception as e:
+
+        return jsonify({
+            "error": str(e)
+        }), 500
+
+# =========================================
+# ANALYSIS DATASET UPLOAD
+# =========================================
+
+@app.route(
+    "/upload_analysis_dataset",
+    methods=["POST"]
+)
+def upload_analysis_dataset():
+
+    global uploaded_analysis_df
+
+    try:
+
+        if "file" not in request.files:
+
+            return jsonify({
+                "error": "No file uploaded"
+            }), 400
+
+        file = request.files["file"]
+
+        filename = secure_filename(
+            file.filename
+        )
+
+        extension = os.path.splitext(
+            filename
+        )[1].lower()
+
+        if extension == ".csv":
+
+            df = pd.read_csv(file)
+
+        elif extension in [".xlsx", ".xls"]:
+
+            df = pd.read_excel(file)
+
+        else:
+
+            return jsonify({
+                "error":
+                "Only CSV or Excel files allowed"
+            }), 400
+
+        missing_columns = validate_dataset_columns(df)
+
+        if missing_columns:
+
+            return jsonify({
+
+                "error":
+                "Missing columns",
+
+                "missing_columns":
+                missing_columns
+
+            }), 400
+
+        uploaded_analysis_df = df
+
+        return jsonify({
+
+            "message":
+            "Dataset uploaded successfully",
+
+            "rows":
+            len(df)
+
+        })
+
+    except Exception as e:
+
+        print("UPLOAD DATASET ERROR:", e)
+
+        return jsonify({
+            "error": str(e)
+        }), 500
+
+# =========================================
+# ANALYSIS FILTERING
+# =========================================
 
 @app.route("/analysis", methods=["POST"])
 def analysis():
+
+    global uploaded_analysis_df
+    global filtered_csv_path
 
     try:
 
         data = request.json
 
-        # LOAD DATASET
-        df = pd.read_csv(
-            "Bank_Personal_Loan_Modelling.csv"
-        )
+        # =====================================
+        # DATASET SOURCE
+        # =====================================
+
+        if uploaded_analysis_df is not None:
+
+            df = uploaded_analysis_df.copy()
+
+        else:
+
+            df = pd.read_csv(
+                "Bank_Personal_Loan_Modelling.csv"
+            )
 
         print("TOTAL DATASET ROWS:", len(df))
 
+        # =====================================
+        # FILTER VALUES
+        # =====================================
+
         age = data.get("age")
+        experience = data.get("experience")
+        zipcode = data.get("zipcode")
         income = data.get("income")
         ccavg = data.get("ccavg")
+        mortgage = data.get("mortgage")
+        family = data.get("family")
+        education = data.get("education")
+        securities = data.get(
+            "securities_account"
+        )
+        cd_account = data.get(
+            "cd_account"
+        )
+        online = data.get("online")
+        creditcard = data.get(
+            "creditcard"
+        )
 
-        print("FILTER DATA:", data)
-
-        # -------------------------
-        # AGE FILTER
-        # -------------------------
+        # =====================================
+        # FILTERING
+        # =====================================
 
         if age not in [None, ""]:
 
-            age = int(age)
-
             df = df[
-                (df["Age"] >= age - 15) &
-                (df["Age"] <= age + 15)
+                df["Age"] >= int(age)
             ]
 
-            print("AFTER AGE:", len(df))
+        if experience not in [None, ""]:
 
-        # -------------------------
-        # INCOME FILTER
-        # -------------------------
+            df = df[
+                df["Experience"] >=
+                int(experience)
+            ]
+
+        if zipcode not in [None, ""]:
+
+            df = df[
+                df["ZIP Code"].astype(str)
+                .str.contains(
+                    str(zipcode),
+                    na=False
+                )
+            ]
 
         if income not in [None, "", "0"]:
 
-            income = int(income)
-
             df = df[
-                (df["Income"] >= income - 80) &
-                (df["Income"] <= income + 80)
+                df["Income"] >=
+                float(income)
             ]
-
-            print("AFTER INCOME:", len(df))
-
-        # -------------------------
-        # CCAVG FILTER
-        # -------------------------
 
         if ccavg not in [None, "", "0"]:
 
-            ccavg = float(ccavg)
-
             df = df[
-                (df["CCAvg"] >= ccavg - 5) &
-                (df["CCAvg"] <= ccavg + 5)
+                df["CCAvg"] >=
+                float(ccavg)
             ]
 
-            print("AFTER CCAVG:", len(df))
+        if mortgage not in [None, "", "0"]:
 
-        # -------------------------
-        # IF EMPTY
-        # -------------------------
+            df = df[
+                df["Mortgage"] >=
+                float(mortgage)
+            ]
+
+        if family not in [None, ""]:
+
+            df = df[
+                df["Family"] ==
+                int(family)
+            ]
+
+        if education not in [None, ""]:
+
+            df = df[
+                df["Education"] ==
+                int(education)
+            ]
+
+        if securities not in [None, ""]:
+
+            df = df[
+                df["Securities Account"] ==
+                int(securities)
+            ]
+
+        if cd_account not in [None, ""]:
+
+            df = df[
+                df["CD Account"] ==
+                int(cd_account)
+            ]
+
+        if online not in [None, ""]:
+
+            df = df[
+                df["Online"] ==
+                int(online)
+            ]
+
+        if creditcard not in [None, ""]:
+
+            df = df[
+                df["CreditCard"] ==
+                int(creditcard)
+            ]
+
+        # =====================================
+        # SAVE FILTERED CSV
+        # =====================================
+
+        df.to_csv(
+            filtered_csv_path,
+            index=False
+        )
+
+        # =====================================
+        # EMPTY RESULT
+        # =====================================
 
         if len(df) == 0:
 
@@ -288,11 +673,15 @@ def analysis():
                 "stats": {
 
                     "total_rows": 0,
+
                     "avg_income": 0,
+
                     "loan_percentage": 0,
+
                     "cd_percentage": 0,
 
                     "education_counts": {
+
                         "edu1": 0,
                         "edu2": 0,
                         "edu3": 0
@@ -300,25 +689,15 @@ def analysis():
                 }
             })
 
-        # -------------------------
-        # TABLE
-        # -------------------------
+        # =====================================
+        # TABLE DATA
+        # =====================================
 
-        table_data = df[[
-            "Age",
-            "Income",
-            "Family",
-            "CCAvg",
-            "Education",
-            "Mortgage",
-            "CD Account",
-            "Online",
-            "Personal Loan"
-        ]].head(20)
+        table_data = df.head(50)
 
-        # -------------------------
+        # =====================================
         # STATS
-        # -------------------------
+        # =====================================
 
         total_rows = len(df)
 
@@ -328,50 +707,63 @@ def analysis():
         )
 
         loan_percentage = round(
-            float(df["Personal Loan"].mean()) * 100,
+            float(
+                df["Personal Loan"].mean()
+            ) * 100,
             1
         )
 
         cd_percentage = round(
-            float(df["CD Account"].mean()) * 100,
+            float(
+                df["CD Account"].mean()
+            ) * 100,
             1
         )
 
         education_counts = {
 
             "edu1":
-                int((df["Education"] == 1).sum()),
+                int(
+                    (df["Education"] == 1)
+                    .sum()
+                ),
 
             "edu2":
-                int((df["Education"] == 2).sum()),
+                int(
+                    (df["Education"] == 2)
+                    .sum()
+                ),
 
             "edu3":
-                int((df["Education"] == 3).sum())
+                int(
+                    (df["Education"] == 3)
+                    .sum()
+                )
         }
 
         return jsonify({
 
             "table":
-                table_data.to_dict(
-                    orient="records"
-                ),
+            table_data.to_dict(
+                orient="records"
+            ),
 
             "stats": {
 
                 "total_rows":
-                    total_rows,
+                total_rows,
 
                 "avg_income":
-                    avg_income,
+                avg_income,
 
                 "loan_percentage":
-                    loan_percentage,
+                loan_percentage,
 
                 "cd_percentage":
-                    cd_percentage,
+                cd_percentage,
 
                 "education_counts":
-                    education_counts
+                education_counts
             }
 
         })
@@ -384,10 +776,46 @@ def analysis():
             "error": str(e)
         }), 500
 
+# =========================================
+# EXPORT FILTERED CSV
+# =========================================
+
+@app.route(
+    "/export_filtered_csv",
+    methods=["GET"]
+)
+def export_filtered_csv():
+
+    try:
+
+        if not os.path.exists(
+            filtered_csv_path
+        ):
+
+            return jsonify({
+                "error":
+                "No filtered CSV available"
+            }), 404
+
+        return send_file(
+            filtered_csv_path,
+            as_attachment=True
+        )
+
+    except Exception as e:
+
+        return jsonify({
+            "error": str(e)
+        }), 500
+
+# =========================================
+# MAIN
+# =========================================
+
 if __name__ == "__main__":
+
     app.run(
         host="127.0.0.1",
         port=5000,
         debug=False
     )
-
