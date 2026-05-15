@@ -1,6 +1,6 @@
-window.addEventListener("beforeunload", () => {
-    console.log("FULL PAGE RELOAD HAPPENING");
-});
+// window.addEventListener("beforeunload", () => {
+//     console.log("FULL PAGE RELOAD HAPPENING");
+// });
 
 
 setTimeout(() => {
@@ -1276,98 +1276,98 @@ if (showResultsBtn) {
 // ANALYSIS TABLE
 // ========================================
 
-function renderAnalysisTable(rows) {
+// function renderAnalysisTable(rows) {
 
-    const table =
-        document.getElementById(
-            "analysisTable"
-        );
+//     const table =
+//         document.getElementById(
+//             "analysisTable"
+//         );
 
-    if (rows.length === 0) {
+//     if (rows.length === 0) {
 
-        table.innerHTML = `
-            <div class="text-center p-6 text-slate-500">
-                No matching rows found
-            </div>
-        `;
+//         table.innerHTML = `
+//             <div class="text-center p-6 text-slate-500">
+//                 No matching rows found
+//             </div>
+//         `;
 
-        return;
-    }
+//         return;
+//     }
 
-    const columns =
-        Object.keys(rows[0]);
+//     const columns =
+//         Object.keys(rows[0]);
 
-    let tableHTML = `
-        <div class="overflow-x-auto">
-        <table class="w-full text-left border-separate border-spacing-y-2">
+//     let tableHTML = `
+//         <div class="overflow-x-auto">
+//         <table class="w-full text-left border-separate border-spacing-y-2">
 
-        <thead>
-        <tr class="text-slate-400 text-[12px]">
-    `;
+//         <thead>
+//         <tr class="text-slate-400 text-[12px]">
+//     `;
 
-    columns.forEach(col => {
+//     columns.forEach(col => {
 
-        tableHTML += `
-            <th class="px-3">
-                ${col}
-            </th>
-        `;
-    });
+//         tableHTML += `
+//             <th class="px-3">
+//                 ${col}
+//             </th>
+//         `;
+//     });
 
-    tableHTML += `
-        </tr>
-        </thead>
-        <tbody>
-    `;
+//     tableHTML += `
+//         </tr>
+//         </thead>
+//         <tbody>
+//     `;
 
-    rows.forEach(row => {
+//     rows.forEach(row => {
 
-        tableHTML += `
-            <tr class="bg-[#0b1326] text-[12px]">
-        `;
+//         tableHTML += `
+//             <tr class="bg-[#0b1326] text-[12px]">
+//         `;
 
-        columns.forEach((col, index) => {
+//         columns.forEach((col, index) => {
 
-            let value =
-                row[col];
+//             let value =
+//                 row[col];
 
-            if (col === "Personal Loan") {
+//             if (col === "Personal Loan") {
 
-                value =
-                    value === 1
-                        ? `
-                    <span class="px-3 py-1 rounded-full bg-green-500/20 text-green-300">
-                        Accepted
-                    </span>
-                `
-                        : `
-                    <span class="px-3 py-1 rounded-full bg-red-500/20 text-red-300">
-                        Rejected
-                    </span>
-                `;
-            }
+//                 value =
+//                     value === 1
+//                         ? `
+//                     <span class="px-3 py-1 rounded-full bg-green-500/20 text-green-300">
+//                         Accepted
+//                     </span>
+//                 `
+//                         : `
+//                     <span class="px-3 py-1 rounded-full bg-red-500/20 text-red-300">
+//                         Rejected
+//                     </span>
+//                 `;
+//             }
 
-            tableHTML += `
-                <td class="p-3 ${index === 0 ? "rounded-l-xl" : ""} ${index === columns.length - 1 ? "rounded-r-xl" : ""}">
-                    ${value}
-                </td>
-            `;
-        });
+//             tableHTML += `
+//                 <td class="p-3 ${index === 0 ? "rounded-l-xl" : ""} ${index === columns.length - 1 ? "rounded-r-xl" : ""}">
+//                     ${value}
+//                 </td>
+//             `;
+//         });
 
-        tableHTML += `
-            </tr>
-        `;
-    });
+//         tableHTML += `
+//             </tr>
+//         `;
+//     });
 
-    tableHTML += `
-        </tbody>
-        </table>
-        </div>
-    `;
+//     tableHTML += `
+//         </tbody>
+//         </table>
+//         </div>
+//     `;
 
-    table.innerHTML =
-        tableHTML;
-}
+//     table.innerHTML =
+//         tableHTML;
+// }
 
 // ========================================
 // ANALYSIS STATS
@@ -1459,21 +1459,21 @@ function updateAnalysisStats(stats) {
 // EXPORT FILTERED CSV
 // ========================================
 
-const exportBtn =
-    document.querySelector(
-        ".btnhere button"
-    );
+// const exportBtn =
+//     document.querySelector(
+//         ".btnhere button"
+//     );
 
-exportBtn.addEventListener(
-    "click",
-    () => {
+// exportBtn.addEventListener(
+//     "click",
+//     () => {
 
-        window.open(
-            "http://127.0.0.1:5000/export_filtered_csv",
-            "_blank"
-        );
-    }
-);
+//         window.open(
+//             "http://127.0.0.1:5000/export_filtered_csv",
+//             "_blank"
+//         );
+//     }
+// );
 
 // ========================================
 // ANALYSIS TABLE RENDER
@@ -1621,4 +1621,75 @@ function updateAnalysisStats(stats) {
         "edu3Bar"
     ).style.width =
         (edu3 / max) * 100 + "%";
+}
+
+// ========================================
+// EXPORT FILTERED CSV
+// ========================================
+
+const exportBtn =
+    document.querySelector(
+        ".btnhere button"
+    );
+
+if (exportBtn) {
+
+    exportBtn.type = "button";
+
+    exportBtn.addEventListener(
+        "click",
+
+        async function (e) {
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            try {
+
+                const response =
+                    await fetch(
+                        "http://127.0.0.1:5000/download_filtered_csv"
+                    );
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        "CSV download failed"
+                    );
+                }
+
+                const blob =
+                    await response.blob();
+
+                const url =
+                    window.URL.createObjectURL(blob);
+
+                const a =
+                    document.createElement("a");
+
+                a.href = url;
+
+                a.download =
+                    "filtered_output.csv";
+
+                document.body.appendChild(a);
+
+                a.click();
+
+                a.remove();
+
+                window.URL.revokeObjectURL(url);
+
+            }
+
+            catch (error) {
+
+                console.log(error);
+
+                alert(
+                    "Export CSV failed"
+                );
+            }
+        }
+    );
 }

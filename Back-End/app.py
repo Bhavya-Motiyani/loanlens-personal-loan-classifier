@@ -23,6 +23,12 @@ def home():
     )
 
 # =========================================
+# DOWNLOAD FILTERED CSV
+# =========================================
+
+
+
+# =========================================
 # CORS
 # =========================================
 
@@ -48,7 +54,15 @@ uploaded_analysis_df = None
 
 predicted_csv_path = "predicted_output.csv"
 
-filtered_csv_path = "filtered_output.csv"
+BASE_DIR = os.path.dirname(
+    os.path.abspath(__file__)
+)
+
+filtered_csv_path = os.path.join(
+    BASE_DIR,
+    "filtered_output.csv"
+)
+
 
 # =========================================
 # REQUIRED DATASET COLUMNS
@@ -415,28 +429,41 @@ def upload_predict_csv():
 # =========================================
 
 @app.route(
-    "/download_predictions_csv",
+    "/download_filtered_csv",
     methods=["GET"]
 )
-def download_predictions_csv():
+def download_filtered_csv():
+
+    global filtered_csv_path
 
     try:
 
-        if not os.path.exists(
-            predicted_csv_path
-        ):
+        print("DOWNLOAD REQUEST RECEIVED")
+
+        print("PATH:", filtered_csv_path)
+
+        print(
+            "FILE EXISTS:",
+            os.path.exists(filtered_csv_path)
+        )
+
+        if not os.path.isfile(filtered_csv_path):
 
             return jsonify({
                 "error":
-                "No prediction CSV available"
+                "Filtered CSV not found"
             }), 404
 
         return send_file(
-            predicted_csv_path,
-            as_attachment=True
+            filtered_csv_path,
+            mimetype="text/csv",
+            as_attachment=True,
+            download_name="filtered_output.csv"
         )
 
     except Exception as e:
+
+        print("DOWNLOAD ERROR:", e)
 
         return jsonify({
             "error": str(e)
@@ -668,10 +695,19 @@ def analysis():
         # SAVE FILTERED CSV
         # =====================================
 
-        # df.to_csv(
-        #     filtered_csv_path,
-        #     index=False
-        # )
+        try:
+
+            df.to_csv(
+                filtered_csv_path,
+                index=False
+            )
+
+            print("FILTERED CSV SAVED:")
+            print(filtered_csv_path)
+
+        except Exception as e:
+
+            print("CSV SAVE ERROR:", e)
 
         # =====================================
         # EMPTY RESULT
@@ -706,7 +742,7 @@ def analysis():
         # TABLE DATA
         # =====================================
 
-        table_data = df.head(50)
+        table_data = df
 
         # =====================================
         # STATS
