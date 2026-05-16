@@ -52,10 +52,13 @@ print("Model Loaded Successfully")
 
 uploaded_analysis_df = None
 
-predicted_csv_path = "predicted_output.csv"
-
 BASE_DIR = os.path.dirname(
     os.path.abspath(__file__)
+)
+
+predicted_csv_path = os.path.join(
+    BASE_DIR,
+    "predicted_output.csv"
 )
 
 filtered_csv_path = os.path.join(
@@ -429,6 +432,52 @@ def upload_predict_csv():
 # =========================================
 
 @app.route(
+    "/download_predictions_csv",
+    methods=["GET"]
+)
+def download_predictions_csv():
+
+    global predicted_csv_path
+
+    try:
+
+        print("PREDICTION CSV DOWNLOAD REQUEST")
+
+        print("PATH:", predicted_csv_path)
+
+        print(
+            "FILE EXISTS:",
+            os.path.exists(predicted_csv_path)
+        )
+
+        if not os.path.isfile(predicted_csv_path):
+
+            return jsonify({
+                "error":
+                "Prediction CSV not found"
+            }), 404
+
+        return send_file(
+            predicted_csv_path,
+            mimetype="text/csv",
+            as_attachment=True,
+            download_name="predicted_output.csv"
+        )
+
+    except Exception as e:
+
+        print("DOWNLOAD ERROR:", e)
+
+        return jsonify({
+            "error": str(e)
+        }), 500
+
+
+# =========================================
+# DOWNLOAD FILTERED CSV
+# =========================================
+
+@app.route(
     "/download_filtered_csv",
     methods=["GET"]
 )
@@ -468,8 +517,8 @@ def download_filtered_csv():
         return jsonify({
             "error": str(e)
         }), 500
-
-# =========================================
+    
+    # =========================================
 # ANALYSIS DATASET UPLOAD
 # =========================================
 
@@ -597,6 +646,7 @@ def analysis():
             "cd_account"
         )
         online = data.get("online")
+        loan = data.get("loan")
         creditcard = data.get(
             "creditcard"
         )
@@ -662,6 +712,15 @@ def analysis():
                 df["Education"] ==
                 int(education)
             ]
+
+        if loan not in [None,""]:
+            loan_value=(
+                1
+                if int(loan)==1
+                else 0
+            )
+
+            df = df[df["Personal Loan"]==loan_value]    
 
         if securities not in [None, ""]:
 
