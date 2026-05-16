@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, render_template
 from flask_cors import CORS
 import pandas as pd
 import joblib
@@ -7,36 +7,13 @@ import numpy as np
 import os
 from werkzeug.utils import secure_filename
 
-from flask import Flask, request, jsonify, send_from_directory
-
-app = Flask(
-    __name__,
-    static_folder="../Front-End",
-    static_url_path=""
-)
+app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return send_from_directory(
-        app.static_folder,
-        "index.html"
-    )
-
-# =========================================
-# DOWNLOAD FILTERED CSV
-# =========================================
-
-
-
-# =========================================
-# CORS
-# =========================================
+    return render_template("index.html")
 
 CORS(app, resources={r"/*": {"origins": "*"}})
-
-# =========================================
-# LOAD MODEL
-# =========================================
 
 model = joblib.load("final_rfc_model.pkl")
 

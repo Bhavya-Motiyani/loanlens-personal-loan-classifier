@@ -336,7 +336,7 @@ predictBtn.addEventListener(
 
             const response =
                 await fetch(
-                    "http://127.0.0.1:5000/predict",
+                    "/predict",
                     {
 
                         method: "POST",
@@ -527,7 +527,7 @@ importPredictBtn.addEventListener(
 
                     const response =
                         await fetch(
-                            "http://127.0.0.1:5000/upload_predict_csv",
+                            "/upload_predict_csv",
                             {
 
                                 method: "POST",
@@ -602,7 +602,7 @@ downloadPredictBtn.addEventListener(
         }
 
         window.open(
-            "http://127.0.0.1:5000/download_predictions_csv",
+            "/download_predictions_csv",
             "_blank"
         );
     }
@@ -753,7 +753,7 @@ async function updateFeatureEffects() {
 
         const response =
             await fetch(
-                "http://127.0.0.1:5000/predict",
+                "/predict",
                 {
 
                     method: "POST",
@@ -1221,7 +1221,7 @@ uploadDatasetBtn.addEventListener(
 
                     const response =
                         await fetch(
-                            "http://127.0.0.1:5000/upload_analysis_dataset",
+                            "/upload_analysis_dataset",
                             {
 
                                 method: "POST",
@@ -1312,7 +1312,7 @@ if (showResultsBtn) {
 
                 const response =
                     await fetch(
-                        "http://127.0.0.1:5000/analysis",
+                        "/analysis",
                         {
                             method: "POST",
 
@@ -1578,22 +1578,6 @@ function updateAnalysisStats(stats) {
 // EXPORT FILTERED CSV
 // ========================================
 
-// const exportBtn =
-//     document.querySelector(
-//         ".btnhere button"
-//     );
-
-// exportBtn.addEventListener(
-//     "click",
-//     () => {
-
-//         window.open(
-//             "http://127.0.0.1:5000/export_filtered_csv",
-//             "_blank"
-//         );
-//     }
-// );
-
 // ========================================
 // ANALYSIS TABLE RENDER
 // ========================================
@@ -1767,7 +1751,7 @@ if (exportBtn) {
 
                 const response =
                     await fetch(
-                        "http://127.0.0.1:5000/download_filtered_csv"
+                        "/download_filtered_csv"
                     );
 
                 if (!response.ok) {
