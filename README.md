@@ -283,7 +283,8 @@ The project includes a modern multi-page interactive web interface designed for 
 - Contributed to application workflow optimization, debugging, deployment integration, and user experience enhancements
 
   Github : https://github.com/SanjayLadumor
-  Linedin : https://www.linkedin.com/in/sanjay-ladumor-360a51381/
+  <br>
+  LinkedIn : https://www.linkedin.com/in/sanjay-ladumor-360a51381/
 
 ---
 
