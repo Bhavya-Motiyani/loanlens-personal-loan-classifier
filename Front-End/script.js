@@ -1,7 +1,3 @@
-// window.addEventListener("beforeunload", () => {
-//     console.log("FULL PAGE RELOAD HAPPENING");
-// });
-
 
 setTimeout(() => {
 
@@ -1043,12 +1039,85 @@ bindSliderText(
 // FILTER BUTTONS
 // ========================================
 
+const selectedFilters = {
+
+    family: "",
+    education: "",
+    loan: "",
+    securities_account: "",
+    cd_account: "",
+    online: "",
+    creditcard: ""
+};
+
 const filterGroups =
     document.querySelectorAll(
         ".filterBtns"
     );
 
 filterGroups.forEach(group => {
+
+    const parent =
+        group.parentElement;
+
+    let filterKey = "";
+
+    if (
+        parent.classList.contains(
+            "familybox"
+        )
+    ) {
+        filterKey = "family";
+    }
+
+    if (
+        parent.classList.contains(
+            "educationbox"
+        )
+    ) {
+        filterKey = "education";
+    }
+
+    if (
+        parent.classList.contains(
+            "loanbox"
+        )
+    ) {
+        filterKey = "loan";
+    }
+
+    if (
+        parent.classList.contains(
+            "securitiesaccountbox"
+        )
+    ) {
+        filterKey =
+            "securities_account";
+    }
+
+    if (
+        parent.classList.contains(
+            "cdaccountbox"
+        )
+    ) {
+        filterKey = "cd_account";
+    }
+
+    if (
+        parent.classList.contains(
+            "onlinebankingbox"
+        )
+    ) {
+        filterKey = "online";
+    }
+
+    if (
+        parent.classList.contains(
+            "creditcardbox"
+        )
+    ) {
+        filterKey = "creditcard";
+    }
 
     const buttons =
         group.querySelectorAll(
@@ -1062,6 +1131,8 @@ filterGroups.forEach(group => {
 
             () => {
 
+                const alreadySelected = button.classList.contains("filter-active");
+
                 buttons.forEach(btn => {
 
                     btn.classList.remove(
@@ -1069,9 +1140,34 @@ filterGroups.forEach(group => {
                     );
                 });
 
+                if (alreadySelected)
+                {
+                    selectedFilters[filterKey]="";
+                    return;
+                }
+
                 button.classList.add(
                     "filter-active"
                 );
+
+                let value =
+                    button.innerText.trim();
+
+                if (
+                    value === "Yes"
+                ) {
+                    value = 1;
+                }
+
+                else if (
+                    value === "No"
+                ) {
+                    value = 0;
+                }
+
+                selectedFilters[
+                    filterKey
+                ] = value;
             }
         );
     });
@@ -1225,12 +1321,36 @@ if (showResultsBtn) {
                             },
 
                             body: JSON.stringify({
+
                                 age,
                                 experience,
                                 zipcode,
                                 income,
                                 ccavg,
-                                mortgage
+                                mortgage,
+
+                                family:
+                                    selectedFilters.family,
+
+                                education:
+                                    selectedFilters.education,
+
+                                loan:
+                                    selectedFilters.loan,
+
+                                securities_account:
+                                    selectedFilters
+                                        .securities_account,
+
+                                cd_account:
+                                    selectedFilters
+                                        .cd_account,
+
+                                online:
+                                    selectedFilters.online,
+
+                                creditcard:
+                                    selectedFilters.creditcard
                             })
                         }
                     );
@@ -1247,7 +1367,6 @@ if (showResultsBtn) {
 
                 console.log("ANALYSIS DATA:", data);
 
-                // IMPORTANT FIX
                 renderAnalysisTable(data.table);
 
                 updateAnalysisStats(data.stats);
