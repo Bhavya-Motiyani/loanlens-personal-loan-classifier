@@ -117,6 +117,40 @@ End-to-end ML project to predict personal loan acceptance for a retail bank (The
 The project includes a fully interactive multi-page web application integrated with the trained ML model.
 
 ---
+# 🎨 Frontend & User Experience
+
+The project includes a modern multi-page interactive web interface designed for real-time machine learning interaction and analytics visualization.
+
+## Frontend Features
+
+| Feature | Description |
+| --- | --- |
+| Multi-Page Dashboard | Separate pages for Prediction, Analysis, and Feature Effects |
+| Interactive Inputs | Dynamic sliders, checkboxes, and user-controlled feature inputs |
+| Real-Time Prediction UI | Instant probability and decision updates |
+| SHAP Visualizations | Dynamic feature contribution bars |
+| CSV Upload System | Upload custom datasets directly from frontend |
+| CSV Download System | Export prediction and filtered datasets |
+| Smart Analytics Dashboard | Live metrics and dataset statistics |
+| Responsive UI | Optimized layout for desktop viewing |
+| Interactive Tables | Dynamic tabular display for filtered datasets |
+| Feature Simulation | Real-time probability updates on changing feature values |
+| Visual Feedback System | Probability gauges and feature impact visualization |
+
+---
+
+## Frontend Technologies
+
+| Category | Tools |
+| --- | --- |
+| Structure | HTML |
+| Styling | CSS |
+| Interactivity | JavaScript |
+| Backend Communication | Flask APIs |
+| Data Visualization | Custom charts and dynamic UI components |
+
+---
+
 
 # 🧠 Page 1 — Predictor Dashboard
 
